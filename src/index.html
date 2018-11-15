@@ -9,11 +9,12 @@
 <body>
     <div id="app">
         <p>{{msg}}</p>
-        <p v-text>{{msg}}</p>
-        <p v-html>{{msg}}</p>
+        <p v-text="msg"  >{{msg}}</p>
+        <p v-html="msg"></p>
         <input type="text" v-model="msg">
         <button v-on:click="clickFn">点我</button>
     </div>
+    <script src="./js/compile.js"></script>
     <script src="./js/vue.js"></script>
     <script>
         let vm = new Vue({
