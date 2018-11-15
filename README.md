@@ -18,3 +18,14 @@ let vm = new Vue({
     }
 })
 ```
+首先，vue是个类，需要传一个对象。
+```js
+class Vue{
+    constructor(opt={}){
+        this.$el = opt.el
+        this.$data = opt.data
+        this.$methods = opt.methods
+    }
+}
+// 在控制台打印下vm，哎嗨，有那么点意思了啊
+```
