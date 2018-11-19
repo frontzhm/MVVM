@@ -102,13 +102,13 @@ class Compile {
  */
 let compileUtil = {
   text(node, vm, expr) {
-    node.textContent = vm.$data[expr]
+    node.textContent = this.getVMValue(vm,expr)
   },
   html(node, vm, expr) {
-    node.innerHTML = vm.$data[expr]
+    node.innerHTML = this.getVMValue(vm,expr)
   },
   model(node, vm, expr) {
-    node.value = vm.$data[expr]
+    node.value = this.getVMValue(vm,expr)
   },
   eventHandle(node, vm, expr,eventName){
     node.addEventListener(eventName,function(){
@@ -117,6 +117,7 @@ let compileUtil = {
     })
   },
   mustache(vm, text) {
+    let _this = this
     // 将{{msg}}换成对应的值
     let reg = /\{\{(.+?)\}\}/g
     // 控制台输入('{{dd}} {{df}}').replace(/\{\{(.+?)\}\}/g,function(){console.log(arguments)})
@@ -127,13 +128,21 @@ let compileUtil = {
     // https://www.cnblogs.com/2han/p/6371307.html  懒惰性和贪婪性 克服贪婪性在量词元字符后面加?即可
     text = text.replace(reg, function () {
       // console.log(arguments)
-      let key = arguments[1]
-      return vm.$data[key]
+      let expr = arguments[1]
+      return _this.getVMValue(vm,expr)
     })
     // 把换好的文本返回
     return text
+  },
+  // 有时候的值复杂一些，就不能单纯的vm.$data[key]了，比如data.car.color，data[car][color]
+  getVMValue(vm,expr){
+    // 迭代递归
+    let temp = vm.$data
+    expr.split('.').forEach(item=>{
+      temp = temp[item]
+    })
+    return temp
   }
-
 
 
 }
