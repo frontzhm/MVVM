@@ -56,4 +56,5 @@ vue是在el的范围内解析的。将其中的相应的指令解析成正确的
         <button v-on:click="clickFn">点我</button>
     </div>
 ```
+遇到标签解析指令，遇到文本解析`{{}}`。
 
