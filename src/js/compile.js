@@ -150,6 +150,7 @@ let compileUtil = {
     })
     // text = this.replaceStr(text,reg,vm)
     node.textContent = text
+    // TODO 这里是bug
     new Watcher(vm,g_expr,newValue=>{
       node.textContent = newValue
     })
