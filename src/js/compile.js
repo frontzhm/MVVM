@@ -56,10 +56,7 @@ class Compile {
     })
   }
   compileText(node){
-    let text = node.textContent
-    if (this.isMustache(text)) {
-      node.textContent = compileUtil.mustache(this.vm, text)
-    }
+    compileUtil.mustache(this.vm, node)
   }
   toArray(arrayLike) {
     return Array.prototype.slice.call(arrayLike)
@@ -79,9 +76,7 @@ class Compile {
   getAttr(directive) {
     return directive.slice(2)
   }
-  isMustache(text) {
-    return /\{\{.+\}\}/.test(text)
-  }
+
 }
 
 /**
@@ -103,12 +98,26 @@ class Compile {
 let compileUtil = {
   text(node, vm, expr) {
     node.textContent = this.getVMValue(vm,expr)
+    new Watcher(vm,expr,newValue=>{
+      node.textContent = newValue
+    })
   },
   html(node, vm, expr) {
     node.innerHTML = this.getVMValue(vm,expr)
+    new Watcher(vm,expr,newValue=>{
+      node.innerHTML = newValue
+    })
   },
   model(node, vm, expr) {
+    let _this = this
     node.value = this.getVMValue(vm,expr)
+    new Watcher(vm,expr,newValue=>{
+      node.value = newValue
+    })
+    // 这里注意双向绑定
+    node.addEventListener('input',function(){
+      _this.setVMValue(vm,expr,node.value)
+    })
   },
   eventHandle(node, vm, expr,eventName){
     node.addEventListener(eventName,function(){
@@ -116,10 +125,63 @@ let compileUtil = {
       vm.$methods[expr].bind(vm)()
     })
   },
-  mustache(vm, text) {
+  isMustache(text) {
+    return /\{\{.+\}\}/.test(text)
+  },
+  mustache(vm, node) {
+    let text = node.textContent
+    if (!this.isMustache(text)) {
+      return
+    }
     let _this = this
     // 将{{msg}}换成对应的值
     let reg = /\{\{(.+?)\}\}/g
+    // 控制台输入('{{dd}} {{df}}').replace(/\{\{(.+?)\}\}/g,function(){console.log(arguments)})
+    // 第二个参数是{{key}}的key
+    // replace可以替换，fn可以动态获取{{key}}的key
+    // ('{{dd}} {{df}}').replace(reg, function () { console.log(arguments) })
+    // replace用法https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+    // https://www.cnblogs.com/2han/p/6371307.html  懒惰性和贪婪性 克服贪婪性在量词元字符后面加?即可
+    let g_expr
+    text = text.replace(reg, function () {
+      // console.log(arguments)
+      let expr = g_expr = arguments[1]
+      return _this.getVMValue(vm,expr)
+    })
+    // text = this.replaceStr(text,reg,vm)
+    node.textContent = text
+    new Watcher(vm,g_expr,newValue=>{
+      node.textContent = newValue
+    })
+  },
+  // 有时候的值复杂一些，就不能单纯的vm.$data[key]了，比如data.car.color，data[car][color]
+  getVMValue(vm,expr){
+    // 迭代递归
+    let temp = vm.$data
+    expr.split('.').forEach(item=>{
+      temp = temp[item]
+    })
+    return temp
+  },
+  // vm.data.car.color  vm[data][car][color] = 'red'
+  setVMValue(vm,expr,newValue){
+    // 迭代递归
+    let temp = vm.$data
+    let arr = expr.split('.')
+    arr.forEach((item,index)=>{
+      // 不是最后的key的话
+      if(arr.length-1<index){
+        temp = temp[item]
+      }else{
+        // 最后的key的话直接赋值
+        temp[item] = newValue
+      }
+    })
+  },
+  // 要替换的文本text，替换的正则表达式，替换的新值，最后返回替换完的结果
+  // 纯粹为了解脱mustache那边的
+  replaceStr(text,reg,vm){
+    let _this = this
     // 控制台输入('{{dd}} {{df}}').replace(/\{\{(.+?)\}\}/g,function(){console.log(arguments)})
     // 第二个参数是{{key}}的key
     // replace可以替换，fn可以动态获取{{key}}的key
@@ -131,18 +193,9 @@ let compileUtil = {
       let expr = arguments[1]
       return _this.getVMValue(vm,expr)
     })
-    // 把换好的文本返回
     return text
-  },
-  // 有时候的值复杂一些，就不能单纯的vm.$data[key]了，比如data.car.color，data[car][color]
-  getVMValue(vm,expr){
-    // 迭代递归
-    let temp = vm.$data
-    expr.split('.').forEach(item=>{
-      temp = temp[item]
-    })
-    return temp
   }
+
 
 
 }
