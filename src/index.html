@@ -8,16 +8,14 @@
 </head>
 <body>
     <div id="app">
-        <p>{{msg}}{{car.color}}</p>
-        <p v-text="msg"  >{{msg}}</p>
+        <p>{{msg}}{{car.color}}{{newMsg}}</p>
+       
         <p v-html="msg"></p>
         <input type="text" v-model="msg">
         <button v-on:click="clickFn">点我</button>
     </div>
-    <script src="./js/watcher.js"></script>
-    <script src="./js/observer.js"></script>
-    <script src="./js/compile.js"></script>
-    <script src="./js/vue.js"></script>
+
+    <script src="./MVVM.js"></script>
     <script>
         let vm = new Vue({
             el:'#app',
@@ -32,7 +30,12 @@
                     console.log('click')
                     console.log(this)
                 }
+            },
+          computed:{
+            newMsg(){
+              return msg+'computed'
             }
+          }
         })
     </script>
 </body>
